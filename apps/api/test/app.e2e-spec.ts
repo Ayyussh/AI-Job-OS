@@ -20,7 +20,26 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer())
       .get('/')
       .expect(200)
-      .expect('Hello World!');
+      .expect({
+        name: 'AI Job OS API',
+        status: 'ready',
+        version: '0.0.1',
+      });
+  });
+
+  it('/health (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/health')
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body).toEqual(
+          expect.objectContaining({
+            status: 'ok',
+            uptime: expect.any(Number),
+            timestamp: expect.any(String),
+          }),
+        );
+      });
   });
 
   afterEach(async () => {

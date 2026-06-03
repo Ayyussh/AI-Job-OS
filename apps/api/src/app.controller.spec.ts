@@ -15,8 +15,24 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return API info', () => {
+      expect(appController.getInfo()).toEqual({
+        name: 'AI Job OS API',
+        status: 'ready',
+        version: '0.0.1',
+      });
+    });
+  });
+
+  describe('health', () => {
+    it('should return health status', () => {
+      expect(appController.getHealth()).toEqual(
+        expect.objectContaining({
+          status: 'ok',
+          uptime: expect.any(Number),
+          timestamp: expect.any(String),
+        }),
+      );
     });
   });
 });
