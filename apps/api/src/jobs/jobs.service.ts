@@ -325,14 +325,18 @@ function contains(value: string): Prisma.StringFilter {
 function enumValue<T extends Record<string, string>>(
   enumObject: T,
   value?: string,
-) {
-  const normalized = clean(value)?.toUpperCase().replace(/[\s-]+/g, '_');
+): T[keyof T] | undefined {
+  const normalized = clean(value)
+    ?.toUpperCase()
+    .replace(/[\s-]+/g, '_');
 
   if (!normalized) {
     return undefined;
   }
 
-  return Object.values(enumObject).find((option) => option === normalized);
+  return Object.values(enumObject).find(
+    (option): option is T[keyof T] => option === normalized,
+  );
 }
 
 function toPositiveInt(value: string | undefined, fallback: number) {

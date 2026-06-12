@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f5f7fb;
-  --foreground: #171a21;
+  --background: #0f172a;
+  --foreground: #ffffff;
 }
 
 @theme inline {
@@ -10,6 +10,17 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
 }
 
 body {
@@ -33,4 +44,302 @@ select {
 button:hover,
 a:hover {
   transform: translateY(-1px);
+}
+
+.page {
+  min-height: 100vh;
+}
+
+.hero {
+  padding: 100px 24px;
+  text-align: center;
+  background: radial-gradient(circle at top, #1e293b 0%, #0f172a 70%);
+}
+
+.hero-badge {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: #1e293b;
+  color: #60a5fa;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.hero h1 {
+  font-size: 4rem;
+  line-height: 1.1;
+  margin: 24px 0 12px;
+}
+
+.hero h1 span {
+  color: #60a5fa;
+}
+
+.hero p {
+  max-width: 700px;
+  margin: auto;
+  color: #cbd5e1;
+  font-size: 1.1rem;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  max-width: 1200px;
+  margin: -40px auto 0;
+  padding: 0 24px;
+}
+
+.stat-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card h3 {
+  margin: 0;
+  font-size: 2rem;
+  color: #60a5fa;
+}
+
+.stat-card p {
+  margin-top: 8px;
+  color: #94a3b8;
+}
+
+.jobs-section {
+  max-width: 1200px;
+  margin: auto;
+  padding: 60px 24px;
+}
+
+.section-header {
+  margin-bottom: 30px;
+}
+
+.section-header h2 {
+  margin-bottom: 8px;
+  font-size: 2rem;
+}
+
+.section-header p {
+  color: #94a3b8;
+}
+
+.jobs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+}
+
+.job-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 24px;
+  transition: all 0.25s ease;
+}
+
+.job-card:hover {
+  transform: translateY(-5px);
+  border-color: #60a5fa;
+  box-shadow: 0 15px 40px rgba(37, 99, 235, 0.15);
+}
+
+.job-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.job-header h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.badge {
+  background: #2563eb;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.company {
+  margin: 14px 0;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.salary {
+  margin-top: 16px;
+  font-weight: 700;
+  color: #4ade80;
+}
+
+.apply-btn {
+  margin-top: 18px;
+  width: 100%;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.apply-btn:hover {
+  background: #1d4ed8;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px;
+  color: #94a3b8;
+}
+
+@media (max-width: 992px) {
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 70px 20px;
+  }
+
+  .hero h1 {
+    font-size: 2.5rem;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .jobs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.job-detail-page {
+  min-height: 100vh;
+  background: #0f172a;
+  padding: 40px 20px;
+}
+
+.job-detail-container {
+  max-width: 1000px;
+  margin: auto;
+}
+
+.job-hero {
+  background: #1e293b;
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 30px;
+}
+
+.job-hero h1 {
+  margin: 12px 0;
+  font-size: 3rem;
+}
+
+.company-name {
+  color: #cbd5e1;
+  font-size: 1.1rem;
+}
+
+.job-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  color: #94a3b8;
+  margin-top: 16px;
+}
+
+.job-section {
+  background: #1e293b;
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.job-section h2 {
+  margin-top: 0;
+}
+
+.skills-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.skill-tag {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #2563eb;
+  color: white;
+}
+
+.apply-link {
+  display: inline-block;
+  margin-top: 20px;
+  background: #22c55e;
+  color: white;
+  text-decoration: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.search-form {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 260px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: white;
+}
+
+.filter-select {
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: white;
+}
+
+.search-btn {
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
 }
