@@ -139,12 +139,13 @@ model CompanyMember {
 }
 
 model JobSource {
-  id         String   @id @default(cuid())
-  name       String   @unique
-  websiteUrl String
-  kind       String
-  active     Boolean  @default(true)
-  createdAt  DateTime @default(now())
+  id             String   @id @default(cuid())
+  name           String   @unique
+  websiteUrl     String
+  kind           String
+  active         Boolean  @default(true)
+  lastScrapedAt  DateTime? // ADD THIS LINE ONLY
+  createdAt      DateTime @default(now())
 
   jobs Job[]
 }
@@ -283,8 +284,6 @@ model MatchResult {
   @@index([jobId])
 }
 
-
-
 model SavedJob {
   id        String   @id @default(cuid())
   notes     String?
@@ -317,6 +316,16 @@ model Application {
   @@unique([userId, jobId])
   @@index([jobId, status])
   @@index([resumeId])
+}
+
+enum ApplicationStatus {
+  SAVED
+  APPLIED
+  SCREENING
+  INTERVIEW
+  OFFER
+  REJECTED
+  WITHDRAWN
 }
 
 model JobAlert {

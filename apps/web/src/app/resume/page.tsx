@@ -1,47 +1,50 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
+import { ResumeUploader } from '@/components/ResumeUploader';
+import { ResumeList } from '@/components/ResumeList';
+import { MatchAllButton } from '@/components/MatchAllButton';
+import { MatchResults } from '@/components/MatchResults';
 
 export default function ResumePage() {
-  const [file, setFile] = useState<File | null>(null);
-  const [result, setResult] = useState("");
-
-  const upload = async () => {
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const res = await fetch(
-      "http://localhost:5000/resume/upload",
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
-
-    const data = await res.json();
-
-    setResult(JSON.stringify(data, null, 2));
-  };
+  const [matchResults, setMatchResults] = useState(null);
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Resume Upload</h1>
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Resume Management</h1>
+        <p className="text-gray-600 mt-2">
+          Upload your resume to extract skills and match with jobs
+        </p>
+      </div>
+      
+      <div className="grid gap-8">
+        {/* Upload Section */}
+        <section>
+          <ResumeUploader />
+        </section>
 
-      <input
-        type="file"
-        accept=".pdf"
-        onChange={(e) =>
-          setFile(e.target.files?.[0] ?? null)
-        }
-      />
+        {/* Match Section */}
+        <section className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-bold mb-4">🎯 Match with Jobs</h2>
+          <p className="text-gray-600 mb-4">
+            Select a resume and match against all available jobs
+          </p>
+          <MatchAllButton onMatchComplete={setMatchResults} />
+        </section>
 
-      <button onClick={upload}>
-        Upload
-      </button>
+        {/* Results Section */}
+        {matchResults && (
+          <section>
+            <MatchResults results={matchResults} />
+          </section>
+        )}
 
-      <pre>{result}</pre>
+        {/* Resume List Section */}
+        <section>
+          <ResumeList />
+        </section>
+      </div>
     </div>
   );
 }

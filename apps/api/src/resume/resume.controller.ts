@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Get,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -20,5 +21,10 @@ export class ResumeController {
   )
   uploadResume(@UploadedFile() file: Express.Multer.File) {
     return this.resumeService.processResume(file);
+  }
+
+  @Get()
+  async getAllResumes() {
+    return this.resumeService.getAllResumes();
   }
 }

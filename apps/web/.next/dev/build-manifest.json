@@ -3,11 +3,24 @@
     "/_app": []
   },
   "devFiles": [],
-  "polyfillFiles": [],
+  "polyfillFiles": [
+    "static/chunks/0oz7_next_dist_build_polyfills_polyfill-nomodule.js"
+  ],
   "lowPriorityFiles": [
     "static/development/_buildManifest.js",
     "static/development/_ssgManifest.js",
     "static/development/_clientMiddlewareManifest.js"
   ],
-  "rootMainFiles": []
+  "rootMainFiles": [
+    "static/chunks/[turbopack]_browser_dev_hmr-client_hmr-client_ts_07dicoc._.js",
+    "static/chunks/0oz7_next_dist_compiled_next-devtools_index_01qyj.l.js",
+    "static/chunks/0oz7_next_dist_compiled_react-dom_0e67igv._.js",
+    "static/chunks/0oz7_next_dist_compiled_react-server-dom-turbopack_03f~dbu._.js",
+    "static/chunks/0oz7_next_dist_compiled_0_wh3lr._.js",
+    "static/chunks/0oz7_next_dist_client_0ri3.hn._.js",
+    "static/chunks/0oz7_next_dist_104.tej._.js",
+    "static/chunks/0i4a_@swc_helpers_cjs_0hvz.20._.js",
+    "static/chunks/apps_web_0rqeker._.js",
+    "static/chunks/turbopack-apps_web_1036yzo._.js"
+  ]
 }
