@@ -32,10 +32,13 @@ export class ScrapingService {
       try {
         this.logger.log(`Scraping ${source.name}...`);
         const scraper = this.scraperFactory.getScraper(source.kind);
-        
+
         if (!scraper) {
           this.logger.warn(`No scraper found for ${source.name}`);
-          results.failed.push({ source: source.name, error: 'No scraper available' });
+          results.failed.push({
+            source: source.name,
+            error: 'No scraper available',
+          });
           continue;
         }
 
@@ -49,7 +52,6 @@ export class ScrapingService {
           where: { id: source.id },
           data: { lastScrapedAt: new Date() },
         });
-
       } catch (err: any) {
         this.logger.error(`Failed to scrape ${source.name}: ${err.message}`);
         results.failed.push({ source: source.name, error: err.message });
@@ -61,9 +63,10 @@ export class ScrapingService {
 
   private async saveJobs(jobs: any[], sourceId: string): Promise<number> {
     let saved = 0;
-    
+
     for (const jobData of jobs) {
       try {
+        // Check if job already exists by sourceJobId
         const existing = await this.prisma.job.findFirst({
           where: {
             sourceId,
@@ -72,6 +75,7 @@ export class ScrapingService {
         });
 
         if (existing) {
+          // Update existing job
           await this.prisma.job.update({
             where: { id: existing.id },
             data: {
@@ -85,8 +89,9 @@ export class ScrapingService {
               updatedAt: new Date(),
             },
           });
+          saved++;
         } else {
-          // Fix: Use findFirst instead of findUnique with name
+          // Find or create company
           let company = await this.prisma.company.findFirst({
             where: { name: jobData.company },
           });
@@ -95,20 +100,32 @@ export class ScrapingService {
             company = await this.prisma.company.create({
               data: {
                 name: jobData.company,
-                slug: this.generateSlug(jobData.company),
+                slug: this.generateUniqueSlug(jobData.company),
                 verified: false,
               },
             });
           }
 
+          // Generate a unique slug
+          const baseSlug = this.generateSlug(jobData.title, jobData.company);
+          let slug = baseSlug;
+          let counter = 1;
+
+          // Check if slug already exists and append counter if needed
+          while (await this.prisma.job.findUnique({ where: { slug } })) {
+            slug = `${baseSlug}-${counter}`;
+            counter++;
+          }
+
+          // Create the job with unique slug
           await this.prisma.job.create({
             data: {
               title: jobData.title,
-              slug: this.generateSlug(jobData.title, jobData.company),
-              description: jobData.description,
-              location: jobData.location,
+              slug: slug, // This is now guaranteed to be unique
+              description: jobData.description || jobData.title,
+              location: jobData.location || 'Remote',
               city: jobData.city,
-              country: jobData.country,
+              country: jobData.country || 'India',
               workMode: jobData.workMode || 'REMOTE',
               jobType: jobData.jobType || 'FULL_TIME',
               experienceLevel: jobData.experienceLevel || 'MID',
@@ -139,6 +156,14 @@ export class ScrapingService {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
+  }
+
+  private generateUniqueSlug(name: string): string {
+    const base = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    return `${base}-${Date.now()}`;
   }
 
   async scrapeSource(sourceName: string) {

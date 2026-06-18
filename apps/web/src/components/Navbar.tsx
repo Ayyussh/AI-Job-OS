@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { AIStatus } from './AIStatus';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -35,6 +36,7 @@ export default function Navbar() {
                 {item.label}
               </Link>
             ))}
+            <AIStatus />
           </div>
         </div>
       </div>

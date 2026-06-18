@@ -8,20 +8,20 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ResumeModule } from './resume/resume.module';
 import { MatchingModule } from './matching/matching.module';
 import { ScrapingModule } from './scraping/scraping.module';
-import { ApplicationsModule } from './applications/applications.module'; 
+import { ApplicationsModule } from './applications/applications.module';
+import { AiModule } from './ai/ai.module'; 
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
     PrismaModule,
     JobsModule,
     ResumeModule,
     MatchingModule,
     ScrapingModule,
-    ApplicationsModule, 
+    ApplicationsModule,
+    AiModule, 
   ],
   controllers: [AppController],
   providers: [AppService],

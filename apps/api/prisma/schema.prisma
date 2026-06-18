@@ -318,16 +318,6 @@ model Application {
   @@index([resumeId])
 }
 
-enum ApplicationStatus {
-  SAVED
-  APPLIED
-  SCREENING
-  INTERVIEW
-  OFFER
-  REJECTED
-  WITHDRAWN
-}
-
 model JobAlert {
   id        String    @id @default(cuid())
   name      String
