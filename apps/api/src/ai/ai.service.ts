@@ -27,7 +27,8 @@ Provide helpful, actionable advice about job searching, career growth, and skill
 Be conversational but concise. If asked about specific jobs, provide realistic recommendations.
 `;
 
-      const response = await fetch('http://localhost:11434/api/generate', {
+      const ollamaUrl = process.env.OLLAMA_API_URL || 'http://localhost:11434';
+      const response = await fetch(`${ollamaUrl}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -56,7 +57,8 @@ Be conversational but concise. If asked about specific jobs, provide realistic r
    */
   async checkOllamaStatus(): Promise<{ running: boolean; models: string[] }> {
     try {
-      const response = await fetch('http://localhost:11434/api/tags', {
+      const ollamaUrl = process.env.OLLAMA_API_URL || 'http://localhost:11434';
+      const response = await fetch(`${ollamaUrl}/api/tags`, {
         signal: AbortSignal.timeout(3000),
       });
 
@@ -228,7 +230,8 @@ Be conversational but concise. If asked about specific jobs, provide realistic r
     }
 
     try {
-      const response = await fetch('http://localhost:11434/api/generate', {
+      const ollamaUrl = process.env.OLLAMA_API_URL || 'http://localhost:11434';
+      const response = await fetch(`${ollamaUrl}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -407,7 +410,8 @@ Provide 3 specific, actionable recommendations for skill development.
 Return as JSON array: ["recommendation1", "recommendation2", "recommendation3"]
 `;
 
-      const response = await fetch('http://localhost:11434/api/generate', {
+      const ollamaUrl = process.env.OLLAMA_API_URL || 'http://localhost:11434';
+      const response = await fetch(`${ollamaUrl}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -457,9 +461,8 @@ Return as JSON array: ["recommendation1", "recommendation2", "recommendation3"]
     for (const model of models) {
       try {
         const start = Date.now();
-        const response = await fetch('http://localhost:11434/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+      const ollamaUrl = process.env.OLLAMA_API_URL || 'http://localhost:11434';
+      const response = await fetch(`${ollamaUrl}/api/generate`, {
           body: JSON.stringify({
             model: model,
             prompt: 'Say "OK" in one word.',
