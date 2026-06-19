@@ -9,51 +9,58 @@ export class AiController {
     private readonly jobDiscoveryService: JobDiscoveryService,
   ) {}
 
-  /**
-   * Chat with AI about jobs, career, etc.
-   */
   @Post('chat')
   async chat(
     @Body('message') message: string,
     @Body('context') context?: { skills?: string[] },
   ) {
+    // Check if user is asking about jobs
+    if (this.isJobQuery(message)) {
+      const result = await this.jobDiscoveryService.discoverJobs(message, context?.skills || []);
+      return {
+        response: result.summary,
+        jobs: result.jobs,
+        searchUrls: result.portals,
+        type: 'job_discovery',
+      };
+    }
+
     const response = await this.aiService.chatWithAI(message, context || {});
-    return { response };
+    return { response, type: 'chat' };
   }
 
-  /**
-   * Discover new jobs not in database
-   */
   @Post('discover-jobs')
   async discoverJobs(
     @Body('query') query: string,
     @Body('skills') skills: string[] = [],
   ) {
-    const jobs = await this.jobDiscoveryService.discoverJobs(query, skills);
-    return { 
-      jobs,
-      total: jobs.length,
-      newJobs: jobs.filter((j: any) => j._isNew).length,
-    };
+    const result = await this.jobDiscoveryService.discoverJobs(query, skills);
+    return result;
   }
 
-  /**
-   * Get search URLs for external job boards
-   */
   @Get('search-urls')
   async getSearchUrls(
     @Query('query') query: string,
     @Query('location') location: string = 'remote',
   ) {
-    const urls = this.jobDiscoveryService.generateSearchUrls(query, location);
+    // Updated method name to match the service
+    const urls = this.jobDiscoveryService.getPortalSearchUrls(query, location);
     return { urls };
   }
 
-  /**
-   * Check AI status
-   */
   @Get('status')
   async getStatus() {
     return this.aiService.checkOllamaStatus();
+  }
+
+  /**
+   * Check if a message is a job-related query
+   */
+  private isJobQuery(message: string): boolean {
+    const jobKeywords = ['find', 'search', 'job', 'work', 'role', 'position', 
+                         'hiring', 'developer', 'engineer', 'designer', 'manager',
+                         'react', 'node', 'python', 'java', 'full stack', 'frontend', 'backend'];
+    const lower = message.toLowerCase();
+    return jobKeywords.some(keyword => lower.includes(keyword));
   }
 }

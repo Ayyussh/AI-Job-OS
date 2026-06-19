@@ -1,14 +1,35 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Sparkles, ExternalLink, Database, Loader2 } from 'lucide-react';
+import { Send, Bot, User, Sparkles, ExternalLink, Loader2, Globe } from 'lucide-react';
+
+interface Job {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  portal: string;
+  url: string;
+  applyUrl: string;
+  matchScore: number;
+  description: string;
+  workMode: string;
+  skills: string[];
+  postedAt: string;
+  isNew: boolean;
+}
+
+interface Portal {
+  name: string;
+  searchUrl: string;
+}
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
-  type?: 'text' | 'jobs' | 'urls';
-  jobs?: any[];
-  urls?: string[];
+  type?: 'text' | 'jobs' | 'portals';
+  jobs?: Job[];
+  portals?: Portal[];
   timestamp: Date;
 }
 
@@ -20,7 +41,7 @@ export function JobDiscoveryChat({ userSkills = [] }: JobDiscoveryChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: '👋 I can help you find jobs! Try asking:\n- "Find remote React jobs"\n- "Show me frontend developer roles"\n- "Find jobs matching my skills"',
+      content: '👋 I can help you find jobs from ALL portals!\n\nTry asking:\n• "Find React jobs in India"\n• "Show me frontend developer roles"\n• "Find remote jobs"\n\n💡 I\'ll show jobs from all portals with one-click apply!',
       type: 'text',
       timestamp: new Date(),
     },
@@ -28,7 +49,6 @@ export function JobDiscoveryChat({ userSkills = [] }: JobDiscoveryChatProps) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [isScraping, setIsScraping] = useState(false);
 
   useEffect(() => {
     scrollToBottom();
@@ -38,34 +58,13 @@ export function JobDiscoveryChat({ userSkills = [] }: JobDiscoveryChatProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleScrape = async () => {
-    setIsScraping(true);
-    try {
-      const response = await fetch('http://localhost:5000/scraping/scrape-all', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await response.json();
-      
-      const resultMessage: Message = {
-        role: 'system',
-        content: `✅ Scraping complete!\n- Total jobs: ${data.total}\n- New jobs: ${data.newJobs}\n- Successful sources: ${data.success.length}\n- Failed sources: ${data.failed.length}`,
-        type: 'text',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, resultMessage]);
-    } catch (error) {
-      console.error('Scraping failed:', error);
-      const errorMessage: Message = {
-        role: 'system',
-        content: '❌ Failed to scrape jobs. Please try again.',
-        type: 'text',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsScraping(false);
-    }
+  // Helper function to check if message is job-related
+  const isJobQuery = (message: string): boolean => {
+    const keywords = ['find', 'search', 'job', 'work', 'role', 'position', 'hiring', 
+                      'developer', 'engineer', 'designer', 'manager', 'react', 'node',
+                      'frontend', 'backend', 'full stack', 'remote'];
+    const lower = message.toLowerCase();
+    return keywords.some(keyword => lower.includes(keyword));
   };
 
   const handleSend = async () => {
@@ -82,15 +81,11 @@ export function JobDiscoveryChat({ userSkills = [] }: JobDiscoveryChatProps) {
     setLoading(true);
 
     try {
-      // Detect if user wants to discover jobs
-      if (input.toLowerCase().includes('find') || 
-          input.toLowerCase().includes('search') ||
-          input.toLowerCase().includes('discover') ||
-          input.toLowerCase().includes('look for')) {
-        
+      // Check if job-related query
+      if (isJobQuery(input)) {
         const loadingMessage: Message = {
           role: 'assistant',
-          content: '🔍 Searching for jobs matching your query...',
+          content: '🔍 Searching all portals for jobs...',
           type: 'text',
           timestamp: new Date(),
         };
@@ -106,50 +101,39 @@ export function JobDiscoveryChat({ userSkills = [] }: JobDiscoveryChatProps) {
         });
         const data = await response.json();
 
-        setMessages(prev => prev.filter(m => m.content !== '🔍 Searching for jobs matching your query...'));
+        setMessages(prev => prev.filter(m => m.content !== '🔍 Searching all portals for jobs...'));
 
         if (data.jobs && data.jobs.length > 0) {
-          const newJobs = data.jobs.filter((j: any) => j._isNew);
-
-          let resultContent = `🎯 Found ${data.total} jobs:\n`;
-          if (newJobs.length > 0) {
-            resultContent += `\n🆕 ${newJobs.length} NEW jobs (not in database)`;
-          }
-
-          const resultMessage: Message = {
+          // Show jobs
+          const jobMessage: Message = {
             role: 'assistant',
-            content: resultContent,
+            content: data.summary || `🎯 Found ${data.jobs.length} jobs!`,
             type: 'jobs',
-            jobs: data.jobs.slice(0, 10),
+            jobs: data.jobs.slice(0, 15),
             timestamp: new Date(),
           };
-          setMessages(prev => [...prev, resultMessage]);
+          setMessages(prev => [...prev, jobMessage]);
 
-          const urlResponse = await fetch(`http://localhost:5000/ai/search-urls?query=${encodeURIComponent(input)}&location=remote`);
-          const urlData = await urlResponse.json();
-          
-          if (urlData.urls && urlData.urls.length > 0) {
-            const urlMessage: Message = {
+          // Show portals
+          if (data.portals && data.portals.length > 0) {
+            const portalMessage: Message = {
               role: 'assistant',
-              content: '🔗 Search these job boards directly:',
-              type: 'urls',
-              urls: urlData.urls,
+              content: '🔗 **Search these portals directly:**',
+              type: 'portals',
+              portals: data.portals,
               timestamp: new Date(),
             };
-            setMessages(prev => [...prev, urlMessage]);
+            setMessages(prev => [...prev, portalMessage]);
           }
         } else {
-          const urlResponse = await fetch(`http://localhost:5000/ai/search-urls?query=${encodeURIComponent(input)}&location=remote`);
-          const urlData = await urlResponse.json();
-          
-          const fallbackMessage: Message = {
+          const portalMessage: Message = {
             role: 'assistant',
-            content: "I couldn't find jobs in my database. Try searching these external job boards:",
-            type: 'urls',
-            urls: urlData.urls || [],
+            content: "I couldn't find jobs matching your query. Try these direct searches:",
+            type: 'portals',
+            portals: data.portals || [],
             timestamp: new Date(),
           };
-          setMessages(prev => [...prev, fallbackMessage]);
+          setMessages(prev => [...prev, portalMessage]);
         }
       } else {
         // Regular chat
@@ -185,35 +169,32 @@ export function JobDiscoveryChat({ userSkills = [] }: JobDiscoveryChatProps) {
     }
   };
 
+  const getMatchColor = (score: number) => {
+    if (score >= 80) return 'text-green-600';
+    if (score >= 60) return 'text-yellow-600';
+    return 'text-gray-500';
+  };
+
+  const getMatchBadge = (score: number) => {
+    if (score >= 80) return 'bg-green-100 text-green-800';
+    if (score >= 60) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-gray-100 text-gray-600';
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-lg flex flex-col h-[600px]">
       {/* Header */}
       <div className="border-b border-gray-200 p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <Bot className="w-6 h-6" />
-            <div>
-              <h3 className="font-semibold">Job Discovery Chat</h3>
-              <p className="text-xs opacity-80">Find jobs not in your database</p>
-            </div>
+        <div className="flex items-center gap-3">
+          <Bot className="w-6 h-6" />
+          <div>
+            <h3 className="font-semibold">AI Job Discovery</h3>
+            <p className="text-xs opacity-80">Find jobs from ALL portals • One-click apply</p>
           </div>
-          <button
-            onClick={handleScrape}
-            disabled={isScraping}
-            className="flex items-center gap-2 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium disabled:opacity-50"
-          >
-            {isScraping ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Scraping...
-              </>
-            ) : (
-              <>
-                <Database className="w-4 h-4" />
-                Scrape Now
-              </>
-            )}
-          </button>
+          <div className="ml-auto flex items-center gap-1 text-xs bg-white/20 px-2 py-1 rounded">
+            <Globe className="w-3 h-3" />
+            <span>18+ portals</span>
+          </div>
         </div>
       </div>
 
@@ -251,49 +232,80 @@ export function JobDiscoveryChat({ userSkills = [] }: JobDiscoveryChatProps) {
 
             {/* Jobs List */}
             {message.type === 'jobs' && message.jobs && (
-              <div className="ml-11 mt-2 space-y-2">
-                {message.jobs.map((job: any, i: number) => (
-                  <div key={i} className="bg-white border border-gray-200 rounded-lg p-3">
+              <div className="ml-11 mt-3 space-y-3">
+                {message.jobs.map((job) => (
+                  <div key={job.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
                     <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-sm">{job.title}</h4>
-                        <p className="text-xs text-gray-600">{job.company}</p>
-                        <p className="text-xs text-gray-500">{job.location}</p>
-                        {job._isNew && (
-                          <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded mt-1">
-                            <Sparkles className="w-3 h-3" />
-                            New
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-gray-900">{job.title}</h4>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${getMatchBadge(job.matchScore)}`}>
+                            {job.matchScore}%
                           </span>
+                          {job.isNew && (
+                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <Sparkles className="w-3 h-3" />
+                              New
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600">{job.company}</p>
+                        <div className="flex flex-wrap gap-2 mt-1 text-xs text-gray-500">
+                          <span>📍 {job.location}</span>
+                          <span>•</span>
+                          <span>{job.workMode}</span>
+                          <span>•</span>
+                          <span className="bg-gray-100 px-2 py-0.5 rounded">{job.portal}</span>
+                          <span>•</span>
+                          <span className="text-gray-400">{job.postedAt}</span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-2 line-clamp-2">{job.description}</p>
+                        {job.skills && job.skills.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {job.skills.slice(0, 4).map((skill, i) => (
+                              <span key={i} className="bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
                         )}
                       </div>
-                      <a
-                        href={job.applyUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
-                      >
-                        Apply <ExternalLink className="w-3 h-3" />
-                      </a>
+                      <div className="flex flex-col items-end gap-2 ml-4 flex-shrink-0">
+                        <a
+                          href={job.applyUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 px-4 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition"
+                        >
+                          Apply <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* URLs List */}
-            {message.type === 'urls' && message.urls && (
+            {/* Portals List */}
+            {message.type === 'portals' && message.portals && (
               <div className="ml-11 mt-2 space-y-1">
-                {message.urls.map((url: string, i: number) => (
+                {message.portals.slice(0, 10).map((portal, i) => (
                   <a
                     key={i}
-                    href={url}
+                    href={portal.searchUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block text-xs text-blue-600 hover:underline break-all"
+                    className="block text-sm text-blue-600 hover:underline flex items-center gap-2"
                   >
-                    🔗 {url}
+                    <ExternalLink className="w-3 h-3" />
+                    {portal.name}
                   </a>
                 ))}
+                {message.portals.length > 10 && (
+                  <span className="text-xs text-gray-400">
+                    +{message.portals.length - 10} more portals
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -319,7 +331,7 @@ export function JobDiscoveryChat({ userSkills = [] }: JobDiscoveryChatProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Ask to find jobs (e.g., 'Find remote React jobs')..."
+            placeholder="Find jobs (e.g., 'Find React jobs in India')..."
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             disabled={loading}
           />
@@ -331,16 +343,21 @@ export function JobDiscoveryChat({ userSkills = [] }: JobDiscoveryChatProps) {
             <Send className="w-5 h-5" />
           </button>
         </div>
-        {userSkills.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            <span className="text-xs text-gray-400">Your skills:</span>
-            {userSkills.slice(0, 5).map((skill) => (
-              <span key={skill} className="text-xs bg-gray-100 px-2 py-0.5 rounded-full">
-                {skill}
-              </span>
-            ))}
-          </div>
-        )}
+        <div className="mt-2 flex flex-wrap gap-1">
+          <span className="text-xs text-gray-400">Quick:</span>
+          {['React jobs', 'Remote jobs', 'Frontend roles', 'Full stack'].map((s) => (
+            <button
+              key={s}
+              onClick={() => {
+                setInput(s);
+                setTimeout(handleSend, 100);
+              }}
+              className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-0.5 rounded-full transition"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

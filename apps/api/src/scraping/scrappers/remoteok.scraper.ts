@@ -7,11 +7,12 @@ export class RemoteOKScraper extends BaseScraper {
 
   async scrape(source: JobSource): Promise<JobData[]> {
     try {
-      // RemoteOK has a public JSON API
+      // Fetch jobs from RemoteOK API
       const data = await this.fetchJSON('https://remoteok.com/api');
       
+      // Filter out non-job items
       const jobs: JobData[] = data
-        .filter((item: any) => !item.slug?.includes('---')) // Skip non-job items
+        .filter((item: any) => !item.slug?.includes('---'))
         .map((item: any) => ({
           title: item.position || item.title || 'Unknown',
           company: item.company || 'Unknown Company',
@@ -27,7 +28,13 @@ export class RemoteOKScraper extends BaseScraper {
           currency: 'USD',
         }));
 
-      return this.filterJobsBySkills(jobs);
+      // Step 1: Filter by skills
+      const filtered = this.filterJobsBySkills(jobs);
+      
+      // Step 2: Deduplicate within this source
+      const deduplicated = this.deduplicateJobs(filtered);
+      
+      return deduplicated;
     } catch (error: any) {
       this.logger.error(`RemoteOK scraping failed: ${error.message}`);
       return [];

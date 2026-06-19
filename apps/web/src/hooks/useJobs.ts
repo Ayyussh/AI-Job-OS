@@ -19,30 +19,45 @@ export function useJobs(options: UseJobsOptions = {}) {
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [currentPage, setCurrentPage] = useState(options.page || 1);
 
-  const fetchJobs = useCallback(async () => {
+  const fetchJobs = useCallback(async (page: number = currentPage) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await getJobs(options);
+      const response = await getJobs({ 
+        ...options, 
+        page, 
+        limit: options.limit || 20 
+      });
       setJobs(response.data);
       setTotal(response.meta?.total || 0);
       setTotalPages(response.meta?.totalPages || 0);
+      setCurrentPage(page);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch jobs');
     } finally {
       setLoading(false);
     }
-  }, [options.page, options.limit, options.q, options.location, options.workMode, options.jobType, options.experienceLevel]);
+  }, [options]);
 
   useEffect(() => {
-    fetchJobs();
-  }, [fetchJobs]);
+    fetchJobs(currentPage);
+  }, [fetchJobs, currentPage]);
 
-  return { jobs, loading, error, total, totalPages, refetch: fetchJobs };
+  return { 
+    jobs, 
+    loading, 
+    error, 
+    total, 
+    totalPages, 
+    currentPage,
+    goToPage: (page: number) => fetchJobs(page),
+    refetch: () => fetchJobs(currentPage),
+  };
 }
 
-// Add this new hook for single job fetching
+// Hook for single job fetching
 export function useJob(slug: string) {
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);

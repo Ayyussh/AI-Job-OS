@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 
 interface Resume {
   id: string;
@@ -19,6 +19,7 @@ interface ResumeContextType {
   setSelectedResumeId: (id: string) => void;
   refreshResumes: () => Promise<void>;
   uploadResume: (file: File, title?: string) => Promise<void>;
+  deleteResume: (id: string) => Promise<void>;
 }
 
 const ResumeContext = createContext<ResumeContextType | undefined>(undefined);
@@ -44,12 +45,7 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
     }
   }, [selectedResumeId]);
 
-  // Fetch resumes on mount
-  useEffect(() => {
-    refreshResumes();
-  }, []);
-
-  const refreshResumes = async () => {
+  const refreshResumes = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -58,16 +54,20 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
       setResumes(data);
       
-      // Auto-select first resume if none selected
+      // Auto-select first resume if none selected and resumes exist
       if (data.length > 0 && !selectedResumeId) {
         setSelectedResumeId(data[0].id);
+      }
+      // If selected resume was deleted, select first available
+      if (selectedResumeId && !data.find((r: Resume) => r.id === selectedResumeId)) {
+        setSelectedResumeId(data.length > 0 ? data[0].id : null);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load resumes');
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedResumeId]);
 
   const uploadResume = async (file: File, title?: string) => {
     const formData = new FormData();
@@ -88,6 +88,15 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const deleteResume = async (id: string) => {
+    const response = await fetch(`http://localhost:5000/resume/${id}`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) throw new Error('Delete failed');
+    await refreshResumes();
+  };
+
   const selectedResume = resumes.find(r => r.id === selectedResumeId) || null;
 
   return (
@@ -100,6 +109,7 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
       setSelectedResumeId,
       refreshResumes,
       uploadResume,
+      deleteResume,
     }}>
       {children}
     </ResumeContext.Provider>

@@ -5,14 +5,11 @@ import { ScrapingService } from './scraping.service';
 import { ScrapingScheduler } from './scraping.scheduler';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ScraperFactory } from '../scraping/scrappers/scraper.factory';
-import { WellfoundScraper } from '../scraping/scrappers/wellfound.scraper';
 import { RemoteOKScraper } from '../scraping/scrappers/remoteok.scraper';
 import { RemotiveScraper } from '../scraping/scrappers/remotive.scraper';
-import { IndeedScraper } from '../scraping/scrappers/indeed.scraper';
-import { NaukriScraper } from '../scraping/scrappers/naukri.scraper';
-import { LinkedInScraper } from '../scraping/scrappers/linkedin.scraper';
-import { YCombinatorScraper } from '../scraping/scrappers/ycombinator.scraper';
-import { ZipRecruiterScraper } from '../scraping/scrappers/ziprecruiter.scraper';
+import { WeWorkRemotelyScraper } from '../scraping/scrappers/weworkremotely.scraper';
+import { HimalayasScraper } from '../scraping/scrappers/himalayas.scraper';
+import { GoogleJobsScraper } from '../scraping/scrappers/googlejobs.scraper';
 
 @Module({
   imports: [
@@ -24,14 +21,11 @@ import { ZipRecruiterScraper } from '../scraping/scrappers/ziprecruiter.scraper'
     ScrapingService,
     ScrapingScheduler,
     ScraperFactory,
-    WellfoundScraper,
     RemoteOKScraper,
     RemotiveScraper,
-    IndeedScraper,
-    NaukriScraper,
-    LinkedInScraper,
-    YCombinatorScraper,
-    ZipRecruiterScraper,
+    WeWorkRemotelyScraper,
+    HimalayasScraper,
+    GoogleJobsScraper,
   ],
   exports: [ScrapingService, ScraperFactory],
 })
